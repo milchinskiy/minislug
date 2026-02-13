@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: ["1.56.0", "stable"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        if: ${{ matrix.toolchain == 'stable' }}
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+
+      - name: Install Rust (MSRV)
+        if: ${{ matrix.toolchain != 'stable' }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ matrix.toolchain }}-
+
+      - name: Rustfmt (stable only)
+        if: ${{ matrix.toolchain == 'stable' }}
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (stable only)
+        if: ${{ matrix.toolchain == 'stable' }}
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Tests (default features)
+        run: cargo test --verbose
+
+      - name: Tests (unicode)
+        run: cargo test --verbose --features unicode
+
+      - name: Tests (transliterate)
+        run: cargo test --verbose --features transliterate
+
+      - name: Tests (unicode + transliterate)
+        run: cargo test --verbose --features "unicode transliterate"
+
+      - name: no_std build (alloc)
+        run: cargo build --verbose --no-default-features

@@ -1,0 +1,27 @@
+[package]
+name = "minislug"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+edition = "2021"
+rust-version = "1.56.0"
+readme = "README.md"
+description = "A tiny, dependency-free slugifier that turns any &str/String into a safe cross-platform filename"
+authors = ["Alexander Milchinskiy <milchinskiy@gmail.com>"]
+repository = "https://github.com/milchinskiy/minislug"
+keywords = ["slug", "filename", "sanitize", "string"]
+categories = ["filesystem", "text-processing"]
+
+[dependencies]
+
+[features]
+default = ["std"]
+std = []
+unicode = []        # allow keeping unicode letters/digits if SlugOptions.allow_unicode = true
+transliterate = []  # transliterate unicode letters into ASCII (no extra deps), disabled by default
+
+[lints.clippy]
+pedantic = "warn"
+nursery = "warn"
+correctness = "warn"
+perf = "warn"
+style = "warn"
